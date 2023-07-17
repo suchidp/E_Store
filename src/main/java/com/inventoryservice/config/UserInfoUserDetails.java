@@ -1,6 +1,7 @@
 package com.inventoryservice.config;
 
 import com.inventoryservice.model.SimpleGrantedAuthority;
+import com.inventoryservice.util.UserUtil;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
@@ -12,7 +13,7 @@ public class UserInfoUserDetails implements UserDetails {
     private List<GrantedAuthority> authorities;
 
     public UserInfoUserDetails(String role) {
-        List<SimpleGrantedAuthority> authorities = UserInfoValidator.validateUserInfo(role);
+        List<SimpleGrantedAuthority> authorities = UserUtil.getUserInfo(role);
         this.authorities = new ArrayList<>(authorities);
     }
 

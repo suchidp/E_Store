@@ -1,12 +1,12 @@
 package com.inventoryservice.service;
 
+import com.inventoryservice.controller.request.CategoryRequest;
 import com.inventoryservice.model.Category;
 import com.inventoryservice.model.SubCategory;
 import com.inventoryservice.repository.CategoryRepository;
 import com.inventoryservice.repository.SubCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,31 +32,48 @@ public class CategoryService {
 
     /*
      *The method used to  get the Category by Using  categoryId.*/
-    public Category findCategoryById(Integer categoryId) {
-        Optional<Category> category = categoryRepository.findById(categoryId);
-        return category.orElse(null);
+    public Optional<Category> findCategoryById(Integer categoryId) {
+        return categoryRepository.findById(categoryId);
+    }
+
+    public Optional<SubCategory> findSubCategoryById(Integer subCategoryId) {
+        return subcategoryRepository.findById(subCategoryId);
+    }
+    public Category updateCategory(Integer categoryId, CategoryRequest categoryRequest) {
+        Optional<Category> categories = categoryRepository.findById(categoryId);
+        Category newCategory = categories.get();
+        newCategory.setCategoryName(categoryRequest.getCategoryName());
+        newCategory.setLastUpdatedOn(LocalDateTime.now());
+        return categoryRepository.save(newCategory);
     }
 
     /*
    The method used to  delete the Category.
    This method check Category is present or not   .
    */
-    public Category deleteCategory(Integer categoryId) {
-        Category category = categoryRepository.findById(categoryId).get();
+    public void deleteCategory(Integer categoryId) {
+        categoryRepository.deleteById(categoryId);
+    }
+
+    public Category archiveCategory(Integer categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElse(null);
         category.setArchived(true);
         for (SubCategory subCategory : category.getSubcategories()) {
             subCategory.setArchived(true);
             subcategoryRepository.save(subCategory);
         }
-        return categoryRepository.save(category);
+        categoryRepository.save(category);
+        return category;
     }
 
-    public Category updateCategory(Integer categoryId, Category category) {
-        Optional<Category> categories = categoryRepository.findById(categoryId);
-        Category newCategory = categories.get();
-        newCategory.setCategoryName(category.getCategoryName());
-        newCategory.setLastUpdatedOn(LocalDateTime.now());
-        return categoryRepository.save(newCategory);
+    public Category unarchiveCategory(Integer categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        category.setArchived(false);
+        for (SubCategory subCategory : category.getSubcategories()) {
+            subCategory.setArchived(false);
+            subcategoryRepository.save(subCategory);
+        }
+        categoryRepository.save(category);
+        return category;
     }
 }
-

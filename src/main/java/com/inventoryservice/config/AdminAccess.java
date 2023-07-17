@@ -10,4 +10,3 @@ import java.lang.annotation.Target;
 @PreAuthorize("hasAuthority('ROLE_ADMIN') ")
 public @interface AdminAccess {
 }
-

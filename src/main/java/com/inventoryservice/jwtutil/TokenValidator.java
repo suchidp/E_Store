@@ -1,6 +1,5 @@
 
 package com.inventoryservice.jwtutil;
-
 import com.inventoryservice.config.UserInfoUserDetails;
 import com.inventoryservice.exception.InvalidTokenException;
 import com.inventoryservice.model.*;
@@ -44,8 +43,3 @@ public class TokenValidator extends OncePerRequestFilter {
         }
     }
 }
-
-
-
-
-

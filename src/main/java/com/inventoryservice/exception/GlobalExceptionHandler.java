@@ -17,19 +17,32 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(com.inventoryservice.exception.SubCategoryNotArchivedException.class)
+    public ResponseEntity<ExceptionResponse> subCategoryNotArchivedException(Exception ex, WebRequest request) {
+        ExceptionResponse exceptionResponse =
+                new ExceptionResponse(ex.getMessage());
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(com.inventoryservice.exception.CategoryNotArchivedException.class)
+    public ResponseEntity<ExceptionResponse> categoryNotArchivedException(Exception ex, WebRequest request) {
+        ExceptionResponse exceptionResponse =
+                new ExceptionResponse(ex.getMessage());
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(com.inventoryservice.exception.CategoryArchivedException.class)
     public ResponseEntity<ExceptionResponse> categoryArchivedException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
                 new ExceptionResponse(ex.getMessage());
-        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(com.inventoryservice.exception.SubCategoryArchivedException.class)
     public ResponseEntity<ExceptionResponse> subCategoryArchivedException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
                 new ExceptionResponse(ex.getMessage());
-        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     /*Exception Handling for SubCategoryNotFoundException
     Using SubCategoryNotFoundException ,to check subCategory is find or Not for given subCategoryId
     * @param ex SubCategoryNotFoundException exception to handle
@@ -42,7 +55,6 @@ public class GlobalExceptionHandler {
                 new ExceptionResponse(ex.getMessage());
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
-
 
     /*Exception Handling for InvalidTokenException
     Using InvalidTokenException ,to check token is valid or not
@@ -58,12 +70,12 @@ public class GlobalExceptionHandler {
 
     }
 
-      /*Exception Handling for CategoryNotFoundException
-    Using CategoryNotFoundException ,to check Category is find or Not for given categoryId
-    * @param ex CategoryNotFoundException exception to handle
-	 * @param request the current request
-	 * @return a  ResponseEntity for the response to use
-     */
+    /*Exception Handling for CategoryNotFoundException
+  Using CategoryNotFoundException ,to check Category is find or Not for given categoryId
+  * @param ex CategoryNotFoundException exception to handle
+   * @param request the current request
+   * @return a  ResponseEntity for the response to use
+   */
     @ExceptionHandler(com.inventoryservice.exception.CategoryNotFoundException.class)
     public ResponseEntity<ExceptionResponse> CategoryNotFoundException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
@@ -101,7 +113,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<Object>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
-
     /*
     Exception Handling using Validations to check MethodArgumentNotValidException
      Using handleMethodArgumentNotValid
@@ -125,7 +136,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<Object>(message, HttpStatus.BAD_REQUEST);
     }
 
-
     /*
     Exception Handling  to check BindException
 	 * @param ex the exception to handle
@@ -139,14 +149,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<Object>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
-       /*
-        Exception Handling  to check MethodArgumentTypeMismatch .
-       It throws a type mismatch when trying  invalid parameter type conversion throws a TypeMismatchException,
-       that we can handle with a method
-         * @param ex the MethodArgumentTypeMismatchException to handle
-         * @param request the current request
-         * @return a  ResponseEntity for the response to use
-         */
+    /*
+     Exception Handling  to check MethodArgumentTypeMismatch .
+    It throws a type mismatch when trying  invalid parameter type conversion throws a TypeMismatchException,
+    that we can handle with a method
+      * @param ex the MethodArgumentTypeMismatchException to handle
+      * @param request the current request
+      * @return a  ResponseEntity for the response to use
+      */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Object> handleMethodArgumentTypeMismatch(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
