@@ -36,9 +36,6 @@ public class CategoryService {
         return categoryRepository.findById(categoryId);
     }
 
-    public Optional<SubCategory> findSubCategoryById(Integer subCategoryId) {
-        return subcategoryRepository.findById(subCategoryId);
-    }
     public Category updateCategory(Integer categoryId, CategoryRequest categoryRequest) {
         Optional<Category> categories = categoryRepository.findById(categoryId);
         Category newCategory = categories.get();
