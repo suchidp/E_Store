@@ -1,6 +1,7 @@
 package com.inventoryservice.service;
 
 import com.inventoryservice.controller.request.CategoryRequest;
+import com.inventoryservice.exception.CategoryAlreadyExistException;
 import com.inventoryservice.model.Category;
 import com.inventoryservice.model.SubCategory;
 import com.inventoryservice.repository.CategoryRepository;
@@ -22,6 +23,10 @@ public class CategoryService {
 
     /*The method used to create the Category*/
     public Category createCategory(Category category) {
+        boolean categoryExist = categoryRepository.existsByCategoryName(category.getCategoryName());
+        if (categoryExist) {
+            throw new CategoryAlreadyExistException("Category Already Exist");
+        }
         return categoryRepository.save(category);
     }
 

@@ -17,6 +17,13 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(com.inventoryservice.exception.CategoryAlreadyExistException.class)
+    public ResponseEntity<ExceptionResponse> categoryAlreadyExistException(Exception ex, WebRequest request) {
+        ExceptionResponse exceptionResponse =
+                new ExceptionResponse(ex.getMessage());
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(com.inventoryservice.exception.SubCategoryNotArchivedException.class)
     public ResponseEntity<ExceptionResponse> subCategoryNotArchivedException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
