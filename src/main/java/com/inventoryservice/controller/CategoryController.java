@@ -6,9 +6,9 @@ import com.inventoryservice.exception.*;
 import com.inventoryservice.model.*;
 import com.inventoryservice.service.CategoryService;
 import com.inventoryservice.service.SubCategoryService;
+import com.inventoryservice.validator.CategoryIdValidator;
+import com.inventoryservice.validator.SubCategoryIdValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,14 +23,18 @@ public class CategoryController {
     @Autowired
     private SubCategoryService subcategoryService;
 
+    @Autowired
+    private CategoryIdValidator categoryIdValidator;
+
+    @Autowired
+    private SubCategoryIdValidator subCateoryIdValidator;
+
     /*  To Add new Category*/
     @PostMapping()
     @InventoryManagerAccess
-    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest categoryRequest) {
+    public CategoryResponse createCategory(@RequestBody CategoryRequest categoryRequest) {
         Category category = categoryRequest.toCategory(categoryRequest);
-        categoryService.createCategory(category);
-        CategoryResponse categoryResponse = CategoryResponse.fromCategory(category);
-        return new ResponseEntity<>(categoryResponse, HttpStatus.FOUND);
+        return CategoryResponse.fromCategory(categoryService.createCategory(category));
     }
 
     /*  To find Category
@@ -39,11 +43,9 @@ public class CategoryController {
      * @throws CategoryNotFoundException  If an Category of specific Id is not found
      * */
     @GetMapping("/{categoryId}")
-    public ResponseEntity<?> findCategoryById(@PathVariable Integer categoryId) throws CategoryNotFoundException {
-        Category category = categoryService.findCategoryById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-        CategoryResponse categoryResponse = CategoryResponse.fromCategory(category);
-        return new ResponseEntity<>(categoryResponse, HttpStatus.FOUND);
+    public CategoryResponse findCategoryById(@PathVariable Integer categoryId) throws CategoryNotFoundException {
+        Category category = categoryIdValidator.findCategoryById(categoryId);
+        return CategoryResponse.fromCategory(category);
     }
 
     /*
@@ -51,65 +53,57 @@ public class CategoryController {
      * @return list of all Category .
      */
     @GetMapping()
-    public ResponseEntity<?> getAllCategories() {
+    public List<CategoryResponse> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
-        List<CategoryResponse> categoryResponses = categories.stream()
+        return categories.stream()
                 .map(CategoryResponse::fromCategory)
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(categoryResponses, HttpStatus.OK);
     }
 
     /*  To Update  Category */
     @PutMapping("/{categoryId}")
     @InventoryManagerAccess
-    public ResponseEntity<?> updateCategory(
+    public CategoryResponse updateCategory(
             @PathVariable Integer categoryId,
             @RequestBody CategoryRequest categoryRequest
     ) throws CategoryNotFoundException, CategoryArchivedException {
-        Category category = categoryService.findCategoryById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+        Category category = categoryIdValidator.findCategoryById(categoryId);
         if (category.isArchived()) {
             throw new CategoryArchivedException("Category is archived and cannot be updated");
         }
-        CategoryResponse categoryResponse = CategoryResponse.fromCategory(categoryService.updateCategory(categoryId, categoryRequest));
-        return new ResponseEntity<>(categoryResponse, HttpStatus.FOUND);
+        return CategoryResponse.fromCategory(categoryService.updateCategory(categoryId, categoryRequest));
     }
 
     /*  To Add new SubCategory */
     @PostMapping("/{categoryId}/subCategory")
     @InventoryManagerAccess
-    public ResponseEntity<?> addSubCategories(
+    public List<SubCategoryResponse> addSubCategories(
             @PathVariable("categoryId") Integer categoryId,
             @RequestBody List<SubCategoryRequest> subCategoryRequests) {
-        Category category = categoryService.findCategoryById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
+        Category category = categoryIdValidator.findCategoryById(categoryId);
         List<SubCategory> subCategories = subCategoryRequests.stream()
                 .map(subCategoryRequest -> {
                     SubCategory subCategory = SubCategoryRequest.toSubCategory(subCategoryRequest);
                     subCategory.setCategory(category);
-                    System.out.println(subCategory);
                     return subCategory;
                 })
                 .collect(Collectors.toList());
         List<SubCategory> savedSubCategories = subcategoryService.saveSubcategories(subCategories);
-        List<SubCategoryResponse> subCategoryResponses = savedSubCategories.stream()
+        return savedSubCategories.stream()
                 .map(SubCategoryResponse::fromSubcategory)
                 .collect(Collectors.toList());
-        return ResponseEntity.status(HttpStatus.CREATED).body(subCategoryResponses);
     }
 
     /*
      * To get list of all SubCategory
      * @return      list of all SubCategory .
      */
-    @GetMapping(("/subCategory"))
-    public ResponseEntity<?> getAllSubCategory() {
+    @GetMapping("/subCategory")
+    public List<SubCategoryResponse> getAllSubCategory() {
         List<SubCategory> subCategories = subcategoryService.getAllSubCategory();
-        List<SubCategoryResponse> subCategoryResponse = subCategories.stream()
+        return subCategories.stream()
                 .map(SubCategoryResponse::fromSubcategory)
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(subCategoryResponse, HttpStatus.OK);
-
     }
 
     /*  To find subCategory
@@ -118,11 +112,9 @@ public class CategoryController {
      * @throws SubCategoryNotFoundException  If an subCategory of specific Id is not found
      * */
     @GetMapping("/subCategory/{subCategoryId}")
-    public ResponseEntity<?> getSubCategoryById(@PathVariable Integer subCategoryId) throws SubCategoryNotFoundException {
-        SubCategory subCategory = subcategoryService.findSubCategoryById(subCategoryId)
-                .orElseThrow(() -> new SubCategoryNotFoundException("SubCategory not found"));
-        SubCategoryResponse subCategoryResponse = SubCategoryResponse.fromSubcategory(subCategory);
-        return new ResponseEntity<>(subCategoryResponse, HttpStatus.FOUND);
+    public SubCategoryResponse getSubCategoryById(@PathVariable Integer subCategoryId) throws SubCategoryNotFoundException {
+        SubCategory subCategory = subCateoryIdValidator.findSubCategoryById(subCategoryId);
+        return SubCategoryResponse.fromSubcategory(subCategory);
     }
 
     /*  To find subCategories of specific Category
@@ -131,30 +123,25 @@ public class CategoryController {
      * @throws CategoryNotFoundException  If an Category of specific Id is not found
      * */
     @GetMapping("/{categoryId}/subCategory")
-    public ResponseEntity<?> getSubCategoriesByCategoryId(@PathVariable Integer categoryId) throws CategoryNotFoundException {
-        Category category = categoryService.findCategoryById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-
+    public List<SubCategoryResponse> getSubCategoriesByCategoryId(@PathVariable Integer categoryId) throws CategoryNotFoundException {
+        Category category = categoryIdValidator.findCategoryById(categoryId);
         List<SubCategory> subCategories = subcategoryService.getSubCategoryByCategoryId(category);
-        List<SubCategoryResponse> subCategoryResponse = subCategories.stream()
+        return subCategories.stream()
                 .map(SubCategoryResponse::fromSubcategory)
                 .collect(Collectors.toList());
-        return new ResponseEntity<>(subCategoryResponse, HttpStatus.OK);
     }
 
     /*  To Update  SubCategory */
     @PutMapping("/subCategory/{subCategoryId}")
     @InventoryManagerAccess
-    public ResponseEntity<?> updateSubCategory(
+    public SubCategoryResponse updateSubCategory(
             @PathVariable Integer subCategoryId, @RequestBody SubCategoryRequest subCategoryRequest
     ) throws SubCategoryNotFoundException, SubCategoryArchivedException {
-        SubCategory subCategory = subcategoryService.findSubCategoryById(subCategoryId)
-                .orElseThrow(() -> new SubCategoryNotFoundException("SubCategory not found"));
+        SubCategory subCategory = subCateoryIdValidator.findSubCategoryById(subCategoryId);
         if (subCategory.isArchived()) {
-            throw new SubCategoryArchivedException("subCategory is archived and cannot be updated");
+            throw new SubCategoryArchivedException("SubCategory is archived and cannot be updated");
         }
-        SubCategoryResponse subCategoryResponse = SubCategoryResponse.fromSubcategory(subcategoryService.updateSubCategory(subCategoryId, subCategoryRequest));
-        return new ResponseEntity<>(subCategoryResponse, HttpStatus.FOUND);
+        return SubCategoryResponse.fromSubcategory(subcategoryService.updateSubCategory(subCategoryId, subCategoryRequest));
     }
 
     /*  To Delete Category
@@ -164,15 +151,12 @@ public class CategoryController {
      */
     @DeleteMapping("/{categoryId}")
     @InventoryManagerAccess
-    public ResponseEntity<?> deleteCategory(@PathVariable Integer categoryId) throws CategoryNotArchivedException, CategoryNotFoundException {
-        Category category = categoryService.findCategoryById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-
+    public void deleteCategory(@PathVariable Integer categoryId) throws CategoryNotArchivedException, CategoryNotFoundException {
+        Category category = categoryIdValidator.findCategoryById(categoryId);
         if (!category.isArchived()) {
-            throw new CategoryNotArchivedException("Category is  not archived and cannot be deleted");
+            throw new CategoryNotArchivedException("Category is not archived and cannot be deleted");
         }
         categoryService.deleteCategory(categoryId);
-        return new ResponseEntity<>("Category deleted successfully", HttpStatus.FOUND);
     }
 
     /*  To Delete SubCategory
@@ -182,56 +166,45 @@ public class CategoryController {
      */
     @DeleteMapping("/subCategory/{subCategoryId}")
     @InventoryManagerAccess
-    public ResponseEntity<?> deleteSubCategory(@PathVariable Integer subCategoryId) throws SubCategoryNotArchivedException, SubCategoryNotFoundException {
-        SubCategory subCategory = subcategoryService.findSubCategoryById(subCategoryId)
-                .orElseThrow(() -> new SubCategoryNotFoundException("SubCategory not found"));
+    public void deleteSubCategory(@PathVariable Integer subCategoryId) throws SubCategoryNotArchivedException, SubCategoryNotFoundException {
+        SubCategory subCategory = subCateoryIdValidator.findSubCategoryById(subCategoryId);
         if (!subCategory.isArchived()) {
             throw new SubCategoryNotArchivedException("subCategory is  not archived and cannot be deleted");
         }
         subcategoryService.deleteSubCategory(subCategoryId);
-        return new ResponseEntity<>("subCategory deleted successfully", HttpStatus.FOUND);
     }
 
     @PostMapping("/{categoryId}/archiveOrUnarchive-category")
     @InventoryManagerAccess
-    public ResponseEntity<Category> archiveOrUnarchiveCategory(@PathVariable Integer categoryId, @RequestBody boolean isArchived) {
-        Category category = categoryService.findCategoryById(categoryId)
-                .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
-        if (isArchived) {
-            if (!category.isArchived()) {
-                category = categoryService.archiveCategory(categoryId);
-            } else {
-                throw new CategoryArchivedException("Category is already archived");
-            }
-        } else {
-            if (category.isArchived()) {
-                category = categoryService.unarchiveCategory(categoryId);
-            } else {
-                throw new CategoryArchivedException("Category is already unarchived");
-            }
+    public CategoryResponse archiveOrUnarchiveCategory(@PathVariable Integer categoryId, @RequestBody boolean isArchived) {
+        Category category = categoryIdValidator.findCategoryById(categoryId);
+        if (isArchived && category.isArchived()) {
+            throw new CategoryArchivedException("Category is already archived");
+        } else if (!isArchived && !category.isArchived()) {
+            throw new CategoryArchivedException("Category is already unarchived");
         }
-        return new ResponseEntity<>(category, HttpStatus.OK);
+        if (isArchived) {
+            category = categoryService.archiveCategory(categoryId);
+        } else {
+            category = categoryService.unarchiveCategory(categoryId);
+        }
+        return CategoryResponse.fromCategory(category);
     }
 
     @PostMapping("/subCategory/{subCategoryId}/archiveOrUnarchive-subcategory")
     @InventoryManagerAccess
-    public ResponseEntity<SubCategory> archiveOrUnarchiveSubCategory(@PathVariable Integer subCategoryId, @RequestBody boolean isArchived) {
-        SubCategory subCategory = subcategoryService.findSubCategoryById(subCategoryId)
-                .orElseThrow(() -> new SubCategoryNotFoundException("SubCategory not found"));
-
-        if (isArchived) {
-            if (!subCategory.isArchived()) {
-                subCategory = subcategoryService.archiveSubCategory(subCategoryId);
-            } else {
-                throw new SubCategoryArchivedException("SubCategory is already archived");
-            }
-        } else {
-            if (subCategory.isArchived()) {
-                subCategory = subcategoryService.unArchiveSubCategory(subCategoryId);
-            } else {
-                throw new SubCategoryArchivedException("SubCategory is already unarchived");
-            }
+    public SubCategoryResponse archiveOrUnarchiveSubCategory(@PathVariable Integer subCategoryId, @RequestBody boolean isArchived) {
+        SubCategory subCategory = subCateoryIdValidator.findSubCategoryById(subCategoryId);
+        if (isArchived && subCategory.isArchived()) {
+            throw new SubCategoryArchivedException("SubCategory is already archived");
+        } else if (!isArchived && !subCategory.isArchived()) {
+            throw new SubCategoryArchivedException("SubCategory is already unarchived");
         }
-        return new ResponseEntity<>(subCategory, HttpStatus.OK);
+        if (isArchived) {
+            subCategory = subcategoryService.archiveSubCategory(subCategoryId);
+        } else {
+            subCategory = subcategoryService.unArchiveSubCategory(subCategoryId);
+        }
+        return SubCategoryResponse.fromSubcategory(subCategory);
     }
 }

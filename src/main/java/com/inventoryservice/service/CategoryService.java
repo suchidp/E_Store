@@ -27,6 +27,8 @@ public class CategoryService {
         if (categoryExist) {
             throw new CategoryAlreadyExistException("Category Already Exist");
         }
+        category.setCreatedOn(LocalDateTime.now());
+        category.setLastUpdatedOn(LocalDateTime.now());
         return categoryRepository.save(category);
     }
 

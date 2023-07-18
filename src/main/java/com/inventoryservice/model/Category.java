@@ -40,5 +40,4 @@ public class Category {
 
     @Column(name = "archive")
     private boolean isArchived;
-
 }

@@ -21,6 +21,10 @@ public class SubCategoryService {
     }
 
     public List<SubCategory> saveSubcategories(List<SubCategory> subCategories) {
+        for (SubCategory subCategory : subCategories) {
+            subCategory.setCreatedOn(LocalDateTime.now());
+            subCategory.setLastUpdatedOn(LocalDateTime.now());
+        }
         return subcategoryRepository.saveAll(subCategories);
     }
 
