@@ -30,12 +30,14 @@ public class GlobalExceptionHandler {
                 new ExceptionResponse(ex.getMessage());
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(com.inventoryservice.exception.CategoryNotArchivedException.class)
     public ResponseEntity<ExceptionResponse> categoryNotArchivedException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
                 new ExceptionResponse(ex.getMessage());
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(com.inventoryservice.exception.CategoryArchivedException.class)
     public ResponseEntity<ExceptionResponse> categoryArchivedException(Exception ex, WebRequest request) {
         ExceptionResponse exceptionResponse =

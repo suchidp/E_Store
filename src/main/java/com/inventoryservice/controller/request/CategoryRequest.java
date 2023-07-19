@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CategoryRequest {
+
     private String categoryName;
     private boolean isArchived;
     private List<SubCategory> subcategories;

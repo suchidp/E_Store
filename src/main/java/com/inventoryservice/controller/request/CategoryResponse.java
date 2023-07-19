@@ -12,6 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 public class CategoryResponse {
+
     private Integer categoryId;
     private String categoryName;
     private LocalDateTime createdOn;

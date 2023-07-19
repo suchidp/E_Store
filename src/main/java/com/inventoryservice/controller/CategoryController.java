@@ -8,7 +8,6 @@ import com.inventoryservice.service.CategoryService;
 import com.inventoryservice.service.SubCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,20 +15,18 @@ import java.util.stream.Collectors;
 @RequestMapping("/category")
 public class CategoryController {
 
-
     @Autowired
     private CategoryService categoryService;
 
     @Autowired
     private SubCategoryService subcategoryService;
 
-
-    public Category CategoryIdValidator(Integer categoryId) throws CategoryNotFoundException {
+    public Category getCategory (Integer categoryId) throws CategoryNotFoundException {
         return categoryService.findCategoryById(categoryId)
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
     }
 
-    public SubCategory SubCategoryIdValidator(Integer subCategoryId) throws SubCategoryNotFoundException {
+    public SubCategory getSubCategory (Integer subCategoryId) throws SubCategoryNotFoundException {
         return subcategoryService.findSubCategoryById(subCategoryId)
                 .orElseThrow(() -> new SubCategoryNotFoundException("SubCategory not found"));
     }
@@ -49,7 +46,7 @@ public class CategoryController {
      * */
     @GetMapping("/{categoryId}")
     public CategoryResponse findCategoryById(@PathVariable Integer categoryId) throws CategoryNotFoundException {
-        Category category = CategoryIdValidator(categoryId);
+        Category category = getCategory(categoryId);
         return CategoryResponse.fromCategory(category);
     }
 
@@ -72,7 +69,7 @@ public class CategoryController {
             @PathVariable Integer categoryId,
             @RequestBody CategoryRequest categoryRequest
     ) throws CategoryNotFoundException, CategoryArchivedException {
-        Category category = CategoryIdValidator(categoryId);
+        Category category = getCategory(categoryId);
         if (category.isArchived()) {
             throw new CategoryArchivedException("Category is archived and cannot be updated");
         }
@@ -85,7 +82,7 @@ public class CategoryController {
     public List<SubCategoryResponse> addSubCategories(
             @PathVariable("categoryId") Integer categoryId,
             @RequestBody List<SubCategoryRequest> subCategoryRequests) {
-        Category category = CategoryIdValidator(categoryId);
+        Category category = getCategory(categoryId);
         List<SubCategory> subCategories = subCategoryRequests.stream()
                 .map(subCategoryRequest -> {
                     SubCategory subCategory = SubCategoryRequest.toSubCategory(subCategoryRequest);
@@ -118,7 +115,7 @@ public class CategoryController {
      * */
     @GetMapping("/subCategory/{subCategoryId}")
     public SubCategoryResponse getSubCategoryById(@PathVariable Integer subCategoryId) throws SubCategoryNotFoundException {
-        SubCategory subCategory = SubCategoryIdValidator(subCategoryId);
+        SubCategory subCategory = getSubCategory(subCategoryId);
         return SubCategoryResponse.fromSubcategory(subCategory);
     }
 
@@ -129,7 +126,7 @@ public class CategoryController {
      * */
     @GetMapping("/{categoryId}/subCategory")
     public List<SubCategoryResponse> getSubCategoriesByCategoryId(@PathVariable Integer categoryId) throws CategoryNotFoundException {
-        Category category = CategoryIdValidator(categoryId);
+        Category category = getCategory(categoryId);
         List<SubCategory> subCategories = subcategoryService.getSubCategoryByCategoryId(category);
         return subCategories.stream()
                 .map(SubCategoryResponse::fromSubcategory)
@@ -142,7 +139,7 @@ public class CategoryController {
     public SubCategoryResponse updateSubCategory(
             @PathVariable Integer subCategoryId, @RequestBody SubCategoryRequest subCategoryRequest
     ) throws SubCategoryNotFoundException, SubCategoryArchivedException {
-        SubCategory subCategory = SubCategoryIdValidator(subCategoryId);
+        SubCategory subCategory = getSubCategory(subCategoryId);
         if (subCategory.isArchived()) {
             throw new SubCategoryArchivedException("SubCategory is archived and cannot be updated");
         }
@@ -157,7 +154,7 @@ public class CategoryController {
     @DeleteMapping("/{categoryId}")
     @InventoryManagerAccess
     public void deleteCategory(@PathVariable Integer categoryId) throws CategoryNotArchivedException, CategoryNotFoundException {
-        Category category = CategoryIdValidator(categoryId);
+        Category category = getCategory(categoryId);
         if (!category.isArchived()) {
             throw new CategoryNotArchivedException("Category is not archived and cannot be deleted");
         }
@@ -172,7 +169,7 @@ public class CategoryController {
     @DeleteMapping("/subCategory/{subCategoryId}")
     @InventoryManagerAccess
     public void deleteSubCategory(@PathVariable Integer subCategoryId) throws SubCategoryNotArchivedException, SubCategoryNotFoundException {
-        SubCategory subCategory = SubCategoryIdValidator(subCategoryId);
+        SubCategory subCategory = getSubCategory(subCategoryId);
         if (!subCategory.isArchived()) {
             throw new SubCategoryNotArchivedException("subCategory is  not archived and cannot be deleted");
         }
@@ -182,7 +179,7 @@ public class CategoryController {
     @PostMapping("/{categoryId}/archiveOrUnarchive-category")
     @InventoryManagerAccess
     public CategoryResponse archiveOrUnarchiveCategory(@PathVariable Integer categoryId, @RequestBody boolean isArchived) {
-        Category category = CategoryIdValidator(categoryId);
+        Category category = getCategory(categoryId);
         if (isArchived && category.isArchived()) {
             throw new CategoryArchivedException("Category is already archived");
         } else if (!isArchived && !category.isArchived()) {
@@ -199,7 +196,7 @@ public class CategoryController {
     @PostMapping("/subCategory/{subCategoryId}/archiveOrUnarchive-subcategory")
     @InventoryManagerAccess
     public SubCategoryResponse archiveOrUnarchiveSubCategory(@PathVariable Integer subCategoryId, @RequestBody boolean isArchived) {
-        SubCategory subCategory = SubCategoryIdValidator(subCategoryId);
+        SubCategory subCategory = getSubCategory(subCategoryId);
         if (isArchived && subCategory.isArchived()) {
             throw new SubCategoryArchivedException("SubCategory is already archived");
         } else if (!isArchived && !subCategory.isArchived()) {

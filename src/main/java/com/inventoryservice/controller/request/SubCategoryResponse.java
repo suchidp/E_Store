@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class SubCategoryResponse {
+
     private Integer subCategoryId;
     private String subCategoryName;
     private LocalDateTime createdOn;

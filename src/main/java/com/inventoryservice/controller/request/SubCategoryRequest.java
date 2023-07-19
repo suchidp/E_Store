@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class SubCategoryRequest {
+
     private String subCategoryName;
     private boolean isArchived;
 
